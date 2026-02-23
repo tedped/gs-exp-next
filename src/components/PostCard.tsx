@@ -1,25 +1,30 @@
 // src/components/PostCard.tsx
+
 "use client";
 
 import type { Post } from "@/types";
-// → API から返ってくる Post 型を使う
 
 // ========================================
-// 投稿カードコンポーネント
+// 投稿カードコンポーネント（いいね機能対応）
 // ========================================
 
 type PostCardProps = {
+  userInitial?: string;
   post: Post;
-  // → API から取得した投稿データ
   onDelete?: (id: number) => void;
-  // → 削除処理を親から受け取る
+  onLike?: (id: number, isLiked: boolean) => void;
+  // → いいね処理を親から受け取る
+  isAnimating?: boolean;
+  // → いいねアニメーション中かどうか
   formatDate?: (dateString: string) => string;
-  // → 日付フォーマット関数を親から受け取る
 };
 
 export default function PostCard({
+  userInitial = "-",
   post,
   onDelete,
+  onLike,
+  isAnimating = false,
   formatDate,
 }: PostCardProps) {
   // デフォルトの日付フォーマット
@@ -44,10 +49,10 @@ export default function PostCard({
       {/* ヘッダー */}
       <div className="flex items-center gap-3 mb-3">
         <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white font-bold text-lg">
-          U
+          {userInitial}
         </div>
         <div className="flex-1">
-          <p className="font-semibold text-white">ユーザー</p>
+          <p className="font-semibold text-white">{userInitial}</p>
           <p className="text-white/50 text-sm">{displayDate}</p>
         </div>
         {/* 削除ボタン */}
@@ -68,14 +73,27 @@ export default function PostCard({
 
       {/* 画像 */}
       {post.imageUrl && (
-        <div className="rounded-xl overflow-hidden">
+        <div className="mb-4 rounded-xl overflow-hidden">
           <img
             src={post.imageUrl}
             alt=""
-            className="w-full h-64 object-cover hover:scale-105 transition-transform duration-300"
+            className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
           />
         </div>
       )}
+
+      {/* アクション（いいねボタン） */}
+      <div className="flex items-center gap-6 pt-3 border-t border-white/10">
+        <button
+          onClick={() => onLike?.(post.id, post.isLiked)}
+          className={`flex items-center gap-2 transition-all ${
+            post.isLiked ? "text-pink-500" : "text-white/50 hover:text-pink-500"
+          } ${isAnimating ? "heart-animation" : ""}`}
+        >
+          <span className="text-xl">{post.isLiked ? "❤️" : "🤍"}</span>
+          <span className="font-medium">{post.likeCount}</span>
+        </button>
+      </div>
     </article>
   );
 }
